@@ -154,6 +154,7 @@ services:
       VALUES_KEYCLOAK_INIT_CONSOLE_SECRET: ${CONSOLE_CLIENT_SECRET}
       VALUES_KEYCLOAK_INIT_OPTIMIZE_SECRET: ${OPTIMIZE_CLIENT_SECRET}
       VALUES_KEYCLOAK_INIT_CONNECTORS_SECRET: ${CONNECTORS_CLIENT_SECRET}
+      VALUES_KEYCLOAK_INIT_MODELER_SEEDER_SECRET: ${MODELER_SEEDER_CLIENT_SECRET}
       KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       HOST: ${HOST}
@@ -388,6 +389,34 @@ services:
       PUSHER_APP_SECRET: ${WEBMODELER_PUSHER_SECRET}
     networks:
       - web-modeler
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  web-modeler-template-seeder:
+    container_name: web-modeler-template-seeder
+    image: alpine:3.20
+    restart: "no"
+    depends_on:
+      web-modeler-restapi:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_REALM: camunda-platform
+      MODELER_URL: http://web-modeler-restapi:8081
+      SEEDER_CLIENT_ID: ${MODELER_SEEDER_CLIENT_ID}
+      SEEDER_CLIENT_SECRET: ${MODELER_SEEDER_CLIENT_SECRET}
+      SEEDER_PROJECT_NAME: Bundled Templates
+      TEMPLATE_FILE_TYPE: CONNECTOR_TEMPLATE
+      TEMPLATES_DIR: /templates
+    volumes:
+      - "./scripts/seed-web-modeler-templates.sh:/seed.sh:ro"
+      - "./web-modeler-templates:/templates:ro"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["apk add --quiet --no-cache bash curl jq && bash /seed.sh"]
+    networks:
+      - web-modeler
+      - identity-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

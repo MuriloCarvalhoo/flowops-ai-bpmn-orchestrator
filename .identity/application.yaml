@@ -112,6 +112,19 @@ identity:
           root-url: "http://localhost:8070"
           redirect-uris:
             - "/login-callback"
+        - name: "Modeler Seeder"
+          id: modeler-seeder
+          type: m2m
+          secret: ${VALUES_KEYCLOAK_INIT_MODELER_SEEDER_SECRET:demo-modeler-seeder-secret}
+          permissions:
+            - audience: "web-modeler-public-api"
+              definition: create:*
+            - audience: "web-modeler-public-api"
+              definition: read:*
+            - audience: "web-modeler-public-api"
+              definition: update:*
+            - audience: "web-modeler-public-api"
+              definition: delete:*
       apis:
         - name: Web Modeler Internal API
           audience: "web-modeler-api"
